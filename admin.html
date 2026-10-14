@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicScout | LGU Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0b0f19; font-family: sans-serif; }
+    </style>
+</head>
+<body class="text-white p-6 md:p-10">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8 border-b border-slate-800 pb-6">
+            <div>
+                <h1 class="text-2xl font-black flex items-center gap-3"><i class="fa-solid fa-satellite-dish text-blue-500 animate-pulse"></i> LGU TACTICAL DISPATCH COMMAND — Brgy. Batia</h1>
+                <p class="text-xs text-slate-400 mt-1">Dispatch municipal units, route hazard alerts, and verify community scout reports.</p>
+            </div>
+            <a href="app.html" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-gamepad"></i> Back to Scout Game
+            </a>
+        </div>
+
+        <!-- Tactical Unit Status Bar -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-xl">
+                <div>
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Garbage Unit #04</p>
+                    <h4 class="text-sm font-bold text-emerald-400">Available / On Standby</h4>
+                </div>
+                <i class="fa-solid fa-truck text-emerald-500/50 text-2xl"></i>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-xl">
+                <div>
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Motorized Patrol</p>
+                    <h4 class="text-sm font-bold text-amber-400">Patrolling Sector B</h4>
+                </div>
+                <i class="fa-solid fa-motorcycle text-amber-500/50 text-2xl"></i>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-xl">
+                <div>
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Electrician Crew</p>
+                    <h4 class="text-sm font-bold text-yellow-400">En Route to St. Martha</h4>
+                </div>
+                <i class="fa-solid fa-bolt text-yellow-500/50 text-2xl"></i>
+            </div>
+        </div>
+
+        <!-- Incident Feed -->
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Incoming Scout Reports Queue</h2>
+            <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1"></span> Live Sync Active</span>
+        </div>
+
+        <div id="admin-reports-container" class="space-y-3">
+            <!-- Dynamically injected report cards -->
+        </div>
+    </div>
+
+    <script>
+        let reports = JSON.parse(localStorage.getItem('civicScoutReports') || '[]');
+
+        function renderAdminQueue() {
+            const container = document.getElementById('admin-reports-container');
+            if(reports.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl text-center text-slate-500 py-16">
+                        <i class="fa-solid fa-radar text-4xl mb-3 text-slate-600"></i>
+                        <p class="text-sm font-bold text-slate-400">No active sector anomalies in queue.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = reports.map(r => `
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div class="flex items-start gap-4">
+                        ${r.image ? `<img src="${r.image}" class="w-16 h-16 object-cover rounded-xl border border-slate-700 shrink-0">` : `<div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center text-slate-600 shrink-0"><i class="fa-solid fa-image text-lg"></i></div>`}
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2.5 py-0.5 bg-blue-500/20 text-blue-400 rounded-md text-[10px] font-black uppercase tracking-wider">${r.category}</span>
+                                <span class="text-xs text-slate-400"><i class="fa-solid fa-clock"></i> ${r.time}</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-white">${r.description}</h4>
+                            <p class="text-xs text-slate-400 font-mono mt-1">Target Coordinates: [${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}]</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-end">
+                        <span class="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-bold mr-2">${r.status}</span>
+                        
+                        ${r.category === 'Garbage' ? `
+                            <button onclick="dispatchUnit(${r.id}, 'Garbage Truck #04 Notified')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-truck"></i> Notify Garbage Truck
+                            </button>` : ''}
+
+                        ${r.category === 'Pothole' ? `
+                            <button onclick="dispatchUnit(${r.id}, 'Motorized Patrol Notified')" class="bg-amber-600 hover:bg-amber-500 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-motorcycle"></i> Notify Motorized Unit
+                            </button>` : ''}
+
+                        ${r.category === 'Streetlight' ? `
+                            <button onclick="dispatchUnit(${r.id}, 'Electrician Crew Notified')" class="bg-yellow-600 hover:bg-yellow-500 text-slate-950 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt"></i> Notify Electrician
+                            </button>` : ''}
+
+                        <button onclick="resolveReport(${r.id})" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-check-double"></i> Mark Resolved
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function dispatchUnit(id, message) {
+            const report = reports.find(r => r.id === id);
+            if(report) {
+                report.status = message;
+                localStorage.setItem('civicScoutReports', JSON.stringify(reports));
+                renderAdminQueue();
+                alert(`🚨 TACTICAL DISPATCH: ${message} successfully routed to target coordinates!`);
+            }
+        }
+
+        function resolveReport(id) {
+            const report = reports.find(r => r.id === id);
+            if(report) {
+                report.status = 'Resolved & Verified';
+                localStorage.setItem('civicScoutReports', JSON.stringify(reports));
+                renderAdminQueue();
+                alert(`Report marked as resolved!`);
+            }
+        }
+
+        renderAdminQueue();
+    </script>
+</body>
+</html>

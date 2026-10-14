@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicScout | Scout Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .hero-title {
+            font-style: italic;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            text-shadow: 2px 4px 0px rgba(0,0,0,0.2);
+        }
+        .btn-3d {
+            transition: all 0.1s;
+            box-shadow: 0 6px 0px #1d4ed8;
+        }
+        .btn-3d:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0px #1d4ed8;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#3b1744] via-[#5c2460] to-[#b33e72] min-h-screen text-white flex items-center justify-center p-6">
+
+    <div class="bg-[#1e1332] w-full max-w-md p-8 rounded-3xl shadow-2xl border border-white/10 relative text-center">
+        
+        <!-- Registration Form View -->
+        <div id="form-view">
+            <div class="mb-8">
+                <h1 class="hero-title text-4xl mb-2">JOIN AS A SCOUT</h1>
+                <p class="text-pink-200 text-sm">"Let's clean the community together."</p>
+            </div>
+
+            <form onsubmit="handleRegister(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Scout Codename / Name</label>
+                    <input type="text" id="scout-name" required class="w-full bg-[#160d26] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500" placeholder="e.g. Scout Justin">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Barangay Assignment</label>
+                    <select id="scout-brgy" class="w-full bg-[#160d26] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500">
+                        <option value="Batia">Brgy. Batia (Active Scope)</option>
+                        <option value="Other">Other Bocaue Barangay</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Email Address</label>
+                    <input type="email" id="scout-email" required class="w-full bg-[#160d26] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500" placeholder="scout@civicscout.app">
+                </div>
+
+                <button type="submit" class="btn-3d w-full bg-blue-600 hover:bg-blue-500 text-white font-black italic text-xl py-4 rounded-xl mt-4">
+                    REGISTER SCOUT
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <a href="index.html" class="text-xs text-gray-400 hover:text-white transition-colors">&larr; Back to Landing Page</a>
+            </div>
+        </div>
+
+        <!-- Ready / Launch View (Hidden by default) -->
+        <div id="ready-view" class="hidden py-6">
+            <div class="w-20 h-20 bg-pink-500/20 border-2 border-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-pink-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            </div>
+            <h2 id="welcome-title" class="hero-title text-3xl mb-3">Welcome, Scout!</h2>
+            <p class="text-gray-300 text-sm mb-8 leading-relaxed">
+                Your tactical gear is ready. Step into Barangay Batia, map out municipal issues, and earn XP.
+            </p>
+            <button onclick="launchGame()" class="btn-3d w-full bg-blue-600 hover:bg-blue-500 text-white font-black italic text-2xl py-5 rounded-2xl flex items-center justify-center gap-3">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                GET READY TO BE A SCOUT
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('scout-name').value;
+            
+            // Save username to session storage
+            sessionStorage.setItem('scoutName', name);
+
+            // Update welcome text on the second screen
+            document.getElementById('welcome-title').innerText = `Welcome, ${name}!`;
+
+            // Transition views smoothly
+            document.getElementById('form-view').classList.add('hidden');
+            document.getElementById('ready-view').classList.remove('hidden');
+        }
+
+        function launchGame() {
+            // Redirect to your game interface page
+            window.location.href = 'app.html';
+        }
+    </script>
+</body>
+</html>
