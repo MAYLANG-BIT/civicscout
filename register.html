@@ -29,49 +29,65 @@
 
     <div class="bg-[#1e1332] w-full max-w-md p-7 sm:p-8 rounded-3xl shadow-2xl border border-white/10 relative">
         
-        <!-- Mode Toggle Tabs -->
         <div class="grid grid-cols-2 gap-1 bg-[#160d26] p-1 rounded-xl mb-6 text-xs font-bold">
             <button type="button" id="tab-signup" onclick="setAuthMode('signup')" class="py-2.5 rounded-lg bg-blue-600 text-white transition-all">CREATE ACCOUNT</button>
             <button type="button" id="tab-login" onclick="setAuthMode('login')" class="py-2.5 rounded-lg text-gray-400 hover:text-white transition-all">LOG IN</button>
         </div>
 
-        <!-- Error Alert -->
         <div id="auth-error" class="hidden mb-4 bg-red-500/20 border border-red-500/50 text-red-200 text-xs font-semibold px-4 py-3 rounded-xl"></div>
 
         <!-- SIGN UP VIEW -->
         <div id="signup-view">
-            <div class="text-center mb-6">
+            <div class="text-center mb-5">
                 <h1 class="hero-title text-3xl mb-1">CREATE ACCOUNT</h1>
-                <p class="text-pink-200 text-xs">Choose your role to enter the CivicScout network</p>
+                <p class="text-pink-200 text-xs">Choose your role in the CivicScout response loop</p>
             </div>
 
             <form onsubmit="handleSignup(event)" class="space-y-4">
-                <!-- Role Selector -->
                 <div>
                     <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-2">Select Account Role</label>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-3 gap-2">
                         <label class="cursor-pointer">
                             <input type="radio" name="role" value="scout" checked onchange="toggleRoleFields()" class="hidden peer">
-                            <div class="border border-white/15 bg-[#160d26] peer-checked:border-blue-500 peer-checked:bg-blue-600/20 p-3 rounded-xl text-center transition-all">
-                                <i class="fa-solid fa-gamepad text-pink-400 text-lg mb-1"></i>
-                                <p class="text-xs font-bold">Community Scout</p>
-                                <p class="text-[10px] text-gray-400">Player / Citizen</p>
+                            <div class="border border-white/15 bg-[#160d26] peer-checked:border-blue-500 peer-checked:bg-blue-600/20 p-2.5 rounded-xl text-center transition-all">
+                                <i class="fa-solid fa-gamepad text-pink-400 text-base mb-1"></i>
+                                <p class="text-[11px] font-bold">Scout</p>
+                                <p class="text-[9px] text-gray-400">Citizen</p>
                             </div>
                         </label>
                         <label class="cursor-pointer">
                             <input type="radio" name="role" value="lgu" onchange="toggleRoleFields()" class="hidden peer">
-                            <div class="border border-white/15 bg-[#160d26] peer-checked:border-emerald-500 peer-checked:bg-emerald-600/20 p-3 rounded-xl text-center transition-all">
-                                <i class="fa-solid fa-building-columns text-emerald-400 text-lg mb-1"></i>
-                                <p class="text-xs font-bold">LGU Official</p>
-                                <p class="text-[10px] text-gray-400">Barangay Admin</p>
+                            <div class="border border-white/15 bg-[#160d26] peer-checked:border-emerald-500 peer-checked:bg-emerald-600/20 p-2.5 rounded-xl text-center transition-all">
+                                <i class="fa-solid fa-building-columns text-emerald-400 text-base mb-1"></i>
+                                <p class="text-[11px] font-bold">LGU Admin</p>
+                                <p class="text-[9px] text-gray-400">Dispatch</p>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="responder" onchange="toggleRoleFields()" class="hidden peer">
+                            <div class="border border-white/15 bg-[#160d26] peer-checked:border-yellow-500 peer-checked:bg-yellow-600/20 p-2.5 rounded-xl text-center transition-all">
+                                <i class="fa-solid fa-helmet-safety text-yellow-400 text-base mb-1"></i>
+                                <p class="text-[11px] font-bold">Responder</p>
+                                <p class="text-[9px] text-gray-400">Field Unit</p>
                             </div>
                         </label>
                     </div>
                 </div>
 
+                <!-- Field Responder Unit Type (Shown only when Responder is selected) -->
+                <div id="responder-unit-group" class="hidden">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-yellow-300 mb-1">Field Responder Unit</label>
+                    <select id="reg-unit-type" class="w-full bg-[#160d26] border border-yellow-500/40 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
+                        <option value="Electrician Team">Barangay Electrician Team (Streetlights)</option>
+                        <option value="Garbage Truck #04">Garbage Truck #04 (Waste Collection)</option>
+                        <option value="Motorized Road Crew">Motorized Road Crew (Potholes)</option>
+                        <option value="Drainage Maintenance">Drainage Maintenance Team (Canals)</option>
+                    </select>
+                </div>
+
                 <div>
                     <label id="name-label" class="block text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-1">Scout Codename / Full Name</label>
-                    <input type="text" id="reg-name" required class="w-full bg-[#160d26] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500" placeholder="e.g. Scout Neil">
+                    <input type="text" id="reg-name" required class="w-full bg-[#160d26] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500" placeholder="e.g. Scout Aaron">
                 </div>
 
                 <div>
@@ -92,15 +108,14 @@
                     </select>
                 </div>
 
-                <!-- LGU Authorization Code Field (Shown only when LGU Official is selected) -->
                 <div id="lgu-code-group" class="hidden bg-emerald-950/40 border border-emerald-500/30 p-3 rounded-xl">
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-emerald-300 mb-1">LGU Authorization Code</label>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-emerald-300 mb-1">Barangay Authorization Code</label>
                     <input type="text" id="reg-lgu-code" class="w-full bg-[#160d26] border border-emerald-500/40 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" placeholder="Enter code: BATIA-LGU-2026">
                     <p class="text-[10px] text-emerald-400/80 mt-1">Demo Defense Key: <code class="font-bold">BATIA-LGU-2026</code></p>
                 </div>
 
                 <button type="submit" id="signup-submit-btn" class="btn-3d w-full bg-blue-600 hover:bg-blue-500 text-white font-black italic text-lg py-3.5 rounded-xl mt-2">
-                    REGISTER & ENTER MISSION
+                    CREATE SCOUT ACCOUNT
                 </button>
             </form>
         </div>
@@ -109,7 +124,7 @@
         <div id="login-view" class="hidden">
             <div class="text-center mb-6">
                 <h1 class="hero-title text-3xl mb-1">WELCOME BACK</h1>
-                <p class="text-pink-200 text-xs">Sign in to route automatically to your Scout or LGU portal</p>
+                <p class="text-pink-200 text-xs">Auto-routes to Scout Map, LGU Command, or Responder Terminal</p>
             </div>
 
             <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -128,12 +143,16 @@
                 </button>
             </form>
 
-            <!-- Quick Demo Credentials Helper for Live Presentation -->
-            <div class="mt-5 bg-[#160d26] border border-white/10 p-3 rounded-xl text-[11px] text-gray-400">
-                <p class="font-bold text-gray-300 mb-1">Built-in LGU Demo Account:</p>
+            <!-- Built-in LGU & Responder Demo Credentials -->
+            <div class="mt-5 bg-[#160d26] border border-white/10 p-3 rounded-xl text-[11px] text-gray-400 space-y-2">
+                <p class="font-bold text-gray-300">Built-in Barangay Staff Demo Accounts:</p>
                 <div class="flex justify-between items-center">
-                    <span><code>lgu@batia.gov.ph</code> / <code>batia2026</code></span>
-                    <button type="button" onclick="fillDemoLGU()" class="text-emerald-400 hover:underline font-bold">Auto-Fill</button>
+                    <span><strong class="text-emerald-400">LGU Admin:</strong> <code>lgu@batia.gov.ph</code></span>
+                    <button type="button" onclick="fillDemo('lgu@batia.gov.ph')" class="text-emerald-400 hover:underline font-bold">Auto-Fill</button>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span><strong class="text-yellow-400">Electrician:</strong> <code>electrician@batia.gov.ph</code></span>
+                    <button type="button" onclick="fillDemo('electrician@batia.gov.ph')" class="text-yellow-400 hover:underline font-bold">Auto-Fill</button>
                 </div>
             </div>
         </div>
@@ -167,21 +186,31 @@
             const role = document.querySelector('input[name="role"]:checked').value;
             const lguGroup = document.getElementById('lgu-code-group');
             const lguInput = document.getElementById('reg-lgu-code');
+            const unitGroup = document.getElementById('responder-unit-group');
             const nameLabel = document.getElementById('name-label');
             const nameInput = document.getElementById('reg-name');
             const submitBtn = document.getElementById('signup-submit-btn');
 
             if (role === 'lgu') {
                 lguGroup.classList.remove('hidden');
+                unitGroup.classList.add('hidden');
                 lguInput.required = true;
                 nameLabel.innerText = 'Official Name / Designation';
                 nameInput.placeholder = 'e.g. Kagawad Santos';
                 submitBtn.innerText = 'CREATE LGU ADMIN ACCOUNT';
+            } else if (role === 'responder') {
+                lguGroup.classList.remove('hidden');
+                unitGroup.classList.remove('hidden');
+                lguInput.required = true;
+                nameLabel.innerText = 'Responder Name / Team Lead';
+                nameInput.placeholder = 'e.g. Engr. Reyes';
+                submitBtn.innerText = 'CREATE RESPONDER ACCOUNT';
             } else {
                 lguGroup.classList.add('hidden');
+                unitGroup.classList.add('hidden');
                 lguInput.required = false;
                 nameLabel.innerText = 'Scout Codename / Full Name';
-                nameInput.placeholder = 'e.g. Scout Neil';
+                nameInput.placeholder = 'e.g. Scout Aaron';
                 submitBtn.innerText = 'CREATE SCOUT ACCOUNT';
             }
         }
@@ -202,11 +231,11 @@
                     email: document.getElementById('reg-email').value,
                     password: document.getElementById('reg-password').value,
                     role,
+                    unitType: document.getElementById('reg-unit-type').value,
                     barangay: document.getElementById('reg-brgy').value,
                     lguCode: document.getElementById('reg-lgu-code').value.trim()
                 });
-                // Route based on role: Player -> app.html, LGU -> admin.html
-                window.location.href = user.role === 'lgu' ? 'admin.html' : 'app.html';
+                window.location.href = CivicCore.getHomeRouteForRole(user.role);
             } catch (err) {
                 showError(err.message);
             }
@@ -220,15 +249,14 @@
                     email: document.getElementById('login-email').value,
                     password: document.getElementById('login-password').value
                 });
-                // Route based on role: Player -> app.html, LGU -> admin.html
-                window.location.href = user.role === 'lgu' ? 'admin.html' : 'app.html';
+                window.location.href = CivicCore.getHomeRouteForRole(user.role);
             } catch (err) {
                 showError(err.message);
             }
         }
 
-        function fillDemoLGU() {
-            document.getElementById('login-email').value = 'lgu@batia.gov.ph';
+        function fillDemo(email) {
+            document.getElementById('login-email').value = email;
             document.getElementById('login-password').value = 'batia2026';
         }
     </script>

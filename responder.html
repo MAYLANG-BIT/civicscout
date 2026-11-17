@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicScout | Field Responder Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0b0f19; font-family: sans-serif; }
+        .leaflet-tile-pane { filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3); }
+    </style>
+</head>
+<body class="text-white p-5 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-800 pb-5">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span id="unit-badge" class="px-2.5 py-0.5 bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 rounded-md text-[10px] font-black uppercase tracking-wider">FIELD UNIT</span>
+                    <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1 animate-ping"></span> Radio Link Active
+                    </span>
+                </div>
+                <h1 id="responder-name" class="text-2xl font-black text-white">Field Responder</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Live Dispatch Queue & On-Site Resolution Terminal — <span id="responder-brgy">Brgy. Batia</span></p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="index.html" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold">Home</a>
+                <button onclick="CivicCore.logout()" class="bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 px-4 py-2.5 rounded-xl text-xs font-bold">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> End Shift / Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Live Dispatch Map -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 mb-6 shadow-xl">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400"><i class="fa-solid fa-map-location-dot text-yellow-400 mr-1"></i> Assigned Sector Targets</span>
+                <span id="active-mission-count" class="text-xs font-bold text-yellow-400">0 Active Dispatches</span>
+            </div>
+            <div id="responder-map" class="w-full h-64 rounded-2xl border border-slate-700 z-0"></div>
+        </div>
+
+        <!-- Assigned Jobs List -->
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">My Unit's Dispatched Work Orders</h2>
+            <label class="text-xs text-slate-400 flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="show-all-units" onchange="renderJobs()" class="rounded bg-slate-800 border-slate-700">
+                Show all barangay dispatches
+            </label>
+        </div>
+
+        <div id="jobs-container" class="space-y-3"></div>
+    </div>
+
+    <!-- COMPLETE REPAIR & UPLOAD AFTER PHOTO MODAL -->
+    <div id="complete-job-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-emerald-500/40 w-full max-w-md rounded-3xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-base font-bold text-emerald-400 flex items-center gap-2">
+                    <i class="fa-solid fa-screwdriver-wrench"></i> Submit Repair Completion Proof
+                </h3>
+                <button onclick="closeCompleteModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-slate-300 mb-4">
+                Snap or upload an <strong>"After"</strong> photo of the completed repair (e.g., working streetlight / cleared road). This updates the LGU Command Center and awards <strong>+100 XP</strong> to the reporting Scout.
+            </p>
+            <label class="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-xl p-4 text-center cursor-pointer bg-slate-800/40 flex flex-col items-center justify-center block mb-4">
+                <input type="file" id="repair-after-input" accept="image/*" capture="environment" class="hidden" onchange="previewRepairPhoto(event)">
+                <div id="repair-after-preview" class="flex flex-col items-center">
+                    <i class="fa-solid fa-camera text-2xl text-slate-400 mb-1"></i>
+                    <p class="text-xs text-slate-400">Tap to capture "After" Repair Photo</p>
+                </div>
+            </label>
+            <div class="flex gap-2">
+                <button onclick="closeCompleteModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs">Cancel</button>
+                <button onclick="submitRepairComplete()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs">Mark Resolved & Notify LGU</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="civicscout-core.js"></script>
+    <script>
+        const responder = CivicCore.getSession();
+        if (!responder) window.location.href = 'register.html?mode=login';
+        else if (responder.role !== 'responder') window.location.href = CivicCore.getHomeRouteForRole(responder.role);
+
+        const myUnit = responder.unitType || 'Electrician Team';
+        document.getElementById('responder-name').innerText = responder.name;
+        document.getElementById('unit-badge').innerText = myUnit.toUpperCase();
+        document.getElementById('responder-brgy').innerText = responder.barangay || 'Brgy. Batia';
+
+        const unitCategoryMap = {
+            'Electrician Team': 'Busted Streetlight',
+            'Garbage Truck #04': 'Uncollected Trash',
+            'Motorized Road Crew': 'Pothole',
+            'Drainage Maintenance': 'Damaged Drainage'
+        };
+
+        const map = L.map('responder-map', { center: [14.832, 120.943], zoom: 15 });
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        const markersLayer = L.layerGroup().addTo(map);
+
+        let allReports = [];
+        let activeJobId = null;
+        let repairAfterBase64 = null;
+
+        function playDispatchChime() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(660, ctx.currentTime);
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.35);
+            } catch {}
+        }
+
+        function isMyJob(r) {
+            if (r.assignedUnitType && r.assignedUnitType === myUnit) return true;
+            if (!r.assignedUnitType && r.category === unitCategoryMap[myUnit] && ['Verified', 'In Progress', 'Resolved'].includes(r.status)) return true;
+            return false;
+        }
+
+        function renderJobs() {
+            const showAll = document.getElementById('show-all-units').checked;
+            const visible = allReports.filter(r => {
+                if (['Rejected/Invalid', 'Duplicate'].includes(r.status)) return false;
+                if (showAll) return ['Verified', 'In Progress', 'Resolved'].includes(r.status);
+                return isMyJob(r);
+            });
+
+            const activeOnly = visible.filter(r => r.status !== 'Resolved');
+            document.getElementById('active-mission-count').innerText = `${activeOnly.length} Active Dispatch(es)`;
+
+            markersLayer.clearLayers();
+            visible.forEach(r => {
+                const pinColor = r.status === 'Resolved' ? '#22c55e' : '#eab308';
+                const icon = L.divIcon({
+                    className: 'custom-icon',
+                    html: `<div style="background-color: ${pinColor}; width: 28px; height: 28px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center;"><i class="fa-solid ${r.status === 'Resolved' ? 'fa-check' : 'fa-wrench'} text-xs text-slate-950"></i></div>`,
+                    iconSize: [28, 28], iconAnchor: [14, 14]
+                });
+                L.marker([r.lat, r.lng], { icon }).addTo(markersLayer).bindPopup(`<b>${r.category}</b><br>${r.streetAddress}<br>Status: ${r.status}`);
+            });
+
+            const container = document.getElementById('jobs-container');
+            if (visible.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl text-center text-slate-500 py-14">
+                        <i class="fa-solid fa-walkie-talkie text-4xl mb-3 text-slate-600"></i>
+                        <p class="text-sm font-bold text-slate-300">Standing by for LGU Dispatch</p>
+                        <p class="text-xs text-slate-500 mt-1">When the LGU Command Center dispatches <strong>${myUnit}</strong>, your target coordinates and photo evidence will appear here automatically.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = visible.map(r => `
+                <div class="bg-slate-900 border ${r.status === 'Resolved' ? 'border-emerald-500/30 opacity-75' : 'border-yellow-500/40'} p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="flex items-start gap-4">
+                        ${r.image ? `<img src="${r.image}" class="w-16 h-16 object-cover rounded-xl border border-slate-700 shrink-0">` : `<div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center text-slate-600 shrink-0"><i class="fa-solid fa-image"></i></div>`}
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <span class="px-2.5 py-0.5 bg-yellow-500/20 text-yellow-300 rounded-md text-[10px] font-black uppercase">${r.category}</span>
+                                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] font-bold">${r.severity || 'Moderate'}</span>
+                                <span class="text-xs font-bold ${r.status === 'Resolved' ? 'text-emerald-400' : 'text-amber-400'}">• ${r.status}</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-white">${r.description}</h4>
+                            <p class="text-xs text-slate-400 mt-0.5"><i class="fa-solid fa-location-dot text-pink-400"></i> ${r.streetAddress || 'Brgy. Batia'} • <span class="font-mono">[${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}]</span></p>
+                            ${r.dispatchedUnit ? `<p class="text-[11px] text-blue-400 mt-1 font-semibold">${r.dispatchedUnit}</p>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+                        <button onclick="map.flyTo([${r.lat}, ${r.lng}], 17)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl text-xs font-bold">
+                            <i class="fa-solid fa-crosshairs"></i> Locate Pin
+                        </button>
+                        ${r.status !== 'Resolved' ? `
+                            <button onclick="markOnSite(${r.id})" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-2 rounded-xl text-xs font-bold">
+                                <i class="fa-solid fa-person-digging"></i> Arrived On-Site
+                            </button>
+                            <button onclick="openCompleteModal(${r.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold">
+                                <i class="fa-solid fa-check-double"></i> Complete Repair
+                            </button>
+                        ` : `<span class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold"><i class="fa-solid fa-circle-check"></i> Completed</span>`}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function markOnSite(id) {
+            allReports = await CivicCore.updateReport(id, 'In Progress', `${myUnit} — On-Site Working`, null, myUnit);
+            renderJobs();
+        }
+
+        function openCompleteModal(id) {
+            activeJobId = id;
+            repairAfterBase64 = null;
+            document.getElementById('repair-after-preview').innerHTML = `
+                <i class="fa-solid fa-camera text-2xl text-slate-400 mb-1"></i>
+                <p class="text-xs text-slate-400">Tap to capture "After" Repair Photo</p>
+            `;
+            document.getElementById('complete-job-modal').classList.remove('hidden');
+        }
+        function closeCompleteModal() { document.getElementById('complete-job-modal').classList.add('hidden'); }
+
+        function previewRepairPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const scale = Math.min(1, 640 / img.width);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    repairAfterBase64 = canvas.toDataURL('image/jpeg', 0.72);
+                    document.getElementById('repair-after-preview').innerHTML = `
+                        <img src="${repairAfterBase64}" class="w-full h-28 object-cover rounded-lg mb-1 border border-emerald-500">
+                        <p class="text-[10px] text-emerald-400 font-bold">After Repair Photo Ready!</p>
+                    `;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function submitRepairComplete() {
+            if (!activeJobId) return;
+            allReports = await CivicCore.updateReport(activeJobId, 'Resolved', `Resolved by ${myUnit}`, repairAfterBase64, myUnit);
+            closeCompleteModal();
+            renderJobs();
+        }
+
+        CivicCore.connectRealtime(async (msg) => {
+            if (msg.event === 'STATUS_UPDATED' && msg.assignedUnitType === myUnit) playDispatchChime();
+            allReports = await CivicCore.fetchReports();
+            renderJobs();
+        });
+
+        (async function bootResponder() {
+            allReports = await CivicCore.fetchReports();
+            renderJobs();
+        })();
+    </script>
+</body>
+</html>

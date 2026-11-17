@@ -1,18 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CivicScout | Gamified Urban Reporting</title>
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,900&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            overflow-x: hidden;
-            background-color: #0f172a;
-            color: white;
-        }
+        body { font-family: 'Poppins', sans-serif; }
         .hero-title {
             font-style: italic;
             font-weight: 900;
@@ -27,230 +24,126 @@
             transform: translateY(6px);
             box-shadow: 0 0px 0px #1d4ed8;
         }
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-            100% { transform: translateY(0px); }
-        }
-        .animate-float { animation: float 4s ease-in-out infinite; }
-        .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-        }
-        .faq-answer.open {
-            max-height: 200px;
-            padding-top: 1rem;
-            padding-bottom: 1rem;
-        }
     </style>
 </head>
-<body class="selection:bg-pink-500 selection:text-white">
+<body class="bg-gradient-to-br from-[#3b1744] via-[#5c2460] to-[#b33e72] min-h-screen text-white selection:bg-pink-500 selection:text-white">
 
-    <!-- Navigation Header -->
-    <nav class="fixed w-full z-50 px-6 md:px-12 py-5 flex justify-between items-center bg-[#191028]/75 backdrop-blur-md border-b border-white/10">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
-            <svg class="w-6 h-6 text-pink-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-            <span class="text-lg font-black tracking-wider">CIVICSCOUT</span>
-        </div>
-        <div class="hidden md:flex gap-8 text-xs font-bold uppercase tracking-widest text-gray-300">
-            <a href="#about" class="hover:text-white transition-colors">About</a>
-            <a href="#rewards" class="hover:text-white transition-colors">Rewards</a>
-            <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
-        </div>
-        <div id="nav-auth-actions" class="flex items-center gap-3">
-            <a href="register.html?mode=login" class="text-xs font-bold uppercase tracking-wider text-pink-200 hover:text-white px-3 py-2 transition-colors">Log In</a>
-            <a href="register.html?mode=signup" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-lg transition-all">Create Account</a>
+    <!-- Navbar -->
+    <nav class="container mx-auto px-6 py-6 flex justify-between items-center">
+        <a href="index.html" class="flex items-center gap-2 text-2xl font-black italic tracking-wider">
+            <i class="fa-solid fa-location-dot text-pink-400"></i> CIVICSCOUT
+        </a>
+        <div id="nav-auth-area" class="flex items-center gap-4">
+            <a href="register.html?mode=login" class="bg-white/10 hover:bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full text-sm font-bold border border-white/20 transition-all">
+                <i class="fa-solid fa-right-to-bracket mr-1"></i> Sign In
+            </a>
         </div>
     </nav>
 
-    <!-- SECTION 1: Hero (Purple Gradient) -->
-    <section id="home" class="relative min-h-screen flex flex-col justify-center pt-28 pb-12 px-6 md:px-12 lg:px-24 bg-gradient-to-br from-[#381446] via-[#5c245f] to-[#b33e72] overflow-hidden">
-        <div class="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-12 relative z-10">
+    <!-- Main Hero Section -->
+    <main class="container mx-auto px-6 py-10 md:py-16 flex flex-col md:flex-row items-center justify-between gap-12">
+        
+        <!-- Left Side -->
+        <div class="md:w-1/2 space-y-6 text-center md:text-left">
+            <div class="inline-block bg-pink-500/20 border border-pink-400/30 rounded-full px-4 py-1 text-xs font-semibold tracking-wider uppercase text-pink-200">
+                <i class="fa-solid fa-bolt text-yellow-400 mr-1"></i> Brgy. Batia Pilot • Bocaue, Bulacan
+            </div>
             
-            <!-- Hero Text -->
-            <div class="flex-1 text-left">
-                <h1 class="hero-title text-5xl sm:text-6xl md:text-8xl leading-none mb-6">
-                    BE THE EYES<br>OF YOUR CITY!
-                </h1>
-                <p class="text-lg font-medium mb-4 text-pink-200">
-                    "Let's clean the community together."
-                </p>
-                <p class="text-base md:text-lg max-w-xl leading-relaxed text-gray-200 mb-8">
-                    CivicScout turns urban maintenance into a cooperative scavenger hunt. Log busted streetlights, uncollected trash, or potholes, and help your local LGU build a better neighborhood.
-                </p>
-                <div class="flex gap-6 text-xs font-bold text-gray-300 uppercase tracking-widest">
-                    <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-pink-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> Web</span>
-                    <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-pink-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> iOS</span>
-                    <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-pink-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> Android</span>
-                </div>
-            </div>
-
-            <!-- Action Card Box -->
-            <div class="w-full max-w-md animate-float">
-                <div class="bg-[#191028] p-8 rounded-3xl shadow-2xl border border-white/10 text-center">
-                    <h2 id="hero-card-title" class="hero-title text-3xl mb-3 text-white">Ready to Scout?</h2>
-                    <p id="hero-card-subtitle" class="text-sm text-gray-400 mb-7">
-                        Create an account as a <strong class="text-white">Community Scout</strong> or <strong class="text-blue-400">LGU Official</strong> to access your mission portal.
-                    </p>
-                    <button onclick="handlePrimaryCTA()" id="hero-primary-btn" class="btn-3d w-full bg-blue-600 hover:bg-blue-500 text-white font-black italic text-xl py-4 rounded-2xl flex items-center justify-center gap-3">
-                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                        <span id="hero-primary-text">CREATE ACCOUNT</span>
-                    </button>
-                    <a href="register.html?mode=login" id="hero-secondary-link" class="mt-4 w-full bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl flex items-center justify-center transition-all">
-                        Already registered? Sign In
-                    </a>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-6">ROLE-BASED PORTAL • BRGY. BATIA</p>
-                </div>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- SECTION 2: Teal - Report & Resolve -->
-    <section id="about" class="min-h-screen flex items-center px-6 md:px-12 lg:px-24 bg-[#009b8b] relative">
-        <div class="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div class="flex justify-center relative">
-                <div class="w-72 h-72 bg-[#008779] rounded-full flex items-center justify-center shadow-2xl relative animate-float">
-                    <svg class="w-28 h-28 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    <span class="absolute top-8 right-12 text-yellow-300 text-xl">★</span>
-                </div>
-            </div>
-            <div>
-                <h2 class="hero-title text-5xl md:text-7xl mb-6">Report & Resolve</h2>
-                <p class="text-xl md:text-2xl leading-relaxed text-teal-100 font-medium">
-                    Map out municipal issues instantly. Your reports go directly to local barangays and LGUs to take action. Every pin drops us closer to a perfect city.
-                </p>
+            <h1 class="hero-title text-5xl md:text-7xl leading-tight">
+                REPORT ISSUES.<br>
+                EARN XP.<br>
+                <span class="text-pink-300">FIX YOUR CITY.</span>
+            </h1>
+            
+            <p class="text-base md:text-lg text-gray-200 max-w-lg mx-auto md:mx-0 font-normal leading-relaxed">
+                Turn everyday neighborhood maintenance into a real-time mission. Pin potholes, uncollected trash, or busted streetlights—verified by Barangay Batia LGU and dispatched directly to field crews.
+            </p>
+            
+            <div class="pt-4 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
+                <button onclick="handlePrimaryCTA()" id="primary-cta-btn" class="btn-3d bg-blue-600 hover:bg-blue-500 text-white font-black italic text-xl px-10 py-4 rounded-2xl w-full sm:w-auto text-center cursor-pointer">
+                    PLAY / LAUNCH APP
+                </button>
+                <a href="register.html" id="secondary-cta-btn" class="text-sm font-semibold text-pink-200 hover:text-white underline underline-offset-4">
+                    Create Scout, LGU, or Responder Account →
+                </a>
             </div>
         </div>
-    </section>
 
-    <!-- SECTION 3: Blue - Earn Badges & XP -->
-    <section id="rewards" class="min-h-screen flex items-center px-6 md:px-12 lg:px-24 bg-[#0d56b3] relative">
-        <div class="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div>
-                <h2 class="hero-title text-5xl md:text-7xl mb-6">Earn Badges & XP</h2>
-                <p class="text-xl md:text-2xl leading-relaxed text-blue-100 font-medium">
-                    Gamify your civic duty! Level up by verifying and resolving community issues. Become a 'First Responder' and climb the leaderboards as you make a real-world impact.
-                </p>
-            </div>
-            <div class="flex justify-center gap-4">
-                <div class="w-36 h-48 bg-gradient-to-b from-amber-400 to-orange-500 rounded-2xl p-4 flex flex-col justify-between shadow-2xl border-2 border-white/20 transform -rotate-6">
-                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">✓</div>
-                    <span class="text-xs font-black uppercase tracking-wider bg-black/20 text-center py-1.5 rounded-lg">Verified</span>
-                </div>
-                <div class="w-36 h-48 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-2xl p-4 flex flex-col justify-between shadow-2xl border-2 border-white/20 transform rotate-6 translate-y-6">
-                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">⚡</div>
-                    <span class="text-[10px] font-black uppercase tracking-wider bg-black/20 text-center py-1.5 rounded-lg">First Responder</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 4: Footer & FAQ -->
-    <footer id="faq" class="bg-[#0b0816] py-20 px-6 md:px-12 lg:px-24 border-t border-white/5">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16">
-            <div>
-                <div class="flex items-center gap-2 mb-6">
-                    <svg class="w-6 h-6 text-pink-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    <span class="text-xl font-black tracking-wider text-white">CIVICSCOUT</span>
-                </div>
-                <p class="text-xs text-gray-400 leading-relaxed mb-6">
-                    CivicScout Inc.<br>
-                    Innovating Urban Spaces<br>
-                    Bocaue, Bulacan, Philippines
-                </p>
-                <p class="text-xs text-gray-500">© 2026 CivicScout</p>
-            </div>
-
-            <div>
-                <h4 class="hero-title text-gray-400 text-xs tracking-widest mb-6">EXPLORE</h4>
-                <ul class="space-y-4 text-xs font-semibold text-gray-300">
-                    <li><a href="register.html?mode=signup" class="hover:text-white transition-colors">Create Scout / LGU Account</a></li>
-                    <li><a href="register.html?mode=login" class="hover:text-white transition-colors">Sign In to Portal</a></li>
-                    <li><a href="#rewards" class="hover:text-white transition-colors">XP & Badge Progression</a></li>
-                </ul>
-            </div>
-
-            <div>
-                <h4 class="hero-title text-gray-400 text-xs tracking-widest mb-6">FREQUENTLY ASKED QUESTIONS</h4>
-                <div class="border-b border-gray-800">
-                    <button class="faq-btn w-full py-4 flex justify-between items-center text-left text-sm font-semibold focus:outline-none hover:text-pink-400 transition-colors">
-                        <span>What is CivicScout?</span>
-                        <span class="faq-icon text-lg font-light">+</span>
-                    </button>
-                    <div class="faq-answer text-gray-400 text-xs leading-relaxed">
-                        CivicScout is a crowdsourced web app for urban reporting where citizens act as Scouts to log municipal issues for LGU action.
+        <!-- Right Side -->
+        <div class="md:w-1/2 w-full max-w-md bg-[#1e1332] rounded-3xl p-8 shadow-2xl border border-white/10 relative overflow-hidden">
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+            
+            <h2 class="text-center font-bold text-sm tracking-widest uppercase text-gray-400 mb-6">3-Actor Closed-Loop System</h2>
+            
+            <div class="space-y-4">
+                <div class="bg-[#2a1b47] p-4 rounded-2xl flex items-center gap-4 border border-white/5">
+                    <div class="bg-blue-500/20 text-blue-400 w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base">1. Citizen Scout Pins Issue</h3>
+                        <p class="text-xs text-gray-400">Tap inside Brgy. Batia, blur faces/plates (RA 10173), and submit.</p>
                     </div>
                 </div>
-                <div class="border-b border-gray-800">
-                    <button class="faq-btn w-full py-4 flex justify-between items-center text-left text-sm font-semibold focus:outline-none hover:text-pink-400 transition-colors">
-                        <span>How do I earn XP?</span>
-                        <span class="faq-icon text-lg font-light">+</span>
-                    </button>
-                    <div class="faq-answer text-gray-400 text-xs leading-relaxed">
-                        You earn +50 XP when the LGU verifies your submitted report, +100 XP when it is resolved, and +15 XP for peer-confirming nearby open reports.
+
+                <div class="bg-[#2a1b47] p-4 rounded-2xl flex items-center gap-4 border border-white/5">
+                    <div class="bg-emerald-500/20 text-emerald-400 w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base">2. LGU Admin Dispatches Crew</h3>
+                        <p class="text-xs text-gray-400">Desk officer verifies (+50 XP) and routes work order to the right unit.</p>
                     </div>
                 </div>
-                <div class="border-b border-gray-800">
-                    <button class="faq-btn w-full py-4 flex justify-between items-center text-left text-sm font-semibold focus:outline-none hover:text-pink-400 transition-colors">
-                        <span>How do LGU Officials log in?</span>
-                        <span class="faq-icon text-lg font-light">+</span>
-                    </button>
-                    <div class="faq-answer text-gray-400 text-xs leading-relaxed">
-                        Select the "LGU Official" role when creating an account using your barangay authorization code, and you will be routed directly to the LGU Command Center.
+
+                <div class="bg-[#2a1b47] p-4 rounded-2xl flex items-center gap-4 border border-white/5">
+                    <div class="bg-yellow-500/20 text-yellow-400 w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-helmet-safety"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base">3. Field Responder Resolves</h3>
+                        <p class="text-xs text-gray-400">Electrician, road, or waste crew uploads "After" proof (+100 XP).</p>
                     </div>
                 </div>
             </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="container mx-auto px-6 py-8 border-t border-white/10 text-center text-xs text-gray-400 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <p>© 2026 CivicScout Software Engineering Project • Brgy. Batia, Bocaue</p>
+        <div class="flex gap-4">
+            <a href="register.html?mode=login" class="hover:text-white transition-colors">Scout / LGU / Responder Portal</a>
         </div>
     </footer>
 
     <script src="civicscout-core.js"></script>
     <script>
-        const currentSession = CivicCore.getSession();
+        const session = CivicCore.getSession();
+        if (session) {
+            const targetUrl = CivicCore.getHomeRouteForRole(session.role);
+            let roleLabel = 'Scout HUD';
+            if (session.role === 'lgu') roleLabel = 'LGU Command';
+            else if (session.role === 'responder') roleLabel = `${session.unitType || 'Responder'} Portal`;
 
-        if (currentSession) {
-            const targetPage = currentSession.role === 'lgu' ? 'admin.html' : 'app.html';
-            const roleLabel = currentSession.role === 'lgu' ? 'LGU Command Center' : 'Scout Map';
-
-            document.getElementById('nav-auth-actions').innerHTML = `
-                <span class="hidden sm:inline text-xs text-pink-200 font-semibold">Hi, ${currentSession.name}</span>
-                <a href="${targetPage}" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-lg">Open ${roleLabel}</a>
-                <button onclick="CivicCore.logout()" class="text-xs font-bold uppercase text-gray-400 hover:text-white px-2 py-2">Logout</button>
+            document.getElementById('nav-auth-area').innerHTML = `
+                <span class="hidden sm:inline text-xs text-pink-200 font-semibold">${session.name}</span>
+                <a href="${targetUrl}" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-full text-xs font-bold transition-all">Open ${roleLabel}</a>
+                <button onclick="CivicCore.logout()" class="bg-white/10 hover:bg-red-500/30 px-4 py-2 rounded-full text-xs font-bold border border-white/20 transition-all">Logout</button>
             `;
-
-            document.getElementById('hero-card-title').innerText = `Welcome Back, ${currentSession.name}!`;
-            document.getElementById('hero-card-subtitle').innerText = `Signed in as ${currentSession.role === 'lgu' ? 'Authorized LGU Administrator' : 'Active Field Scout'} (${currentSession.barangay}).`;
-            document.getElementById('hero-primary-text').innerText = `LAUNCH ${roleLabel.toUpperCase()}`;
-            document.getElementById('hero-secondary-link').innerText = 'Switch Account / Log Out';
-            document.getElementById('hero-secondary-link').onclick = (e) => {
-                e.preventDefault();
-                CivicCore.logout();
-            };
+            document.getElementById('primary-cta-btn').innerText = `CONTINUE TO ${roleLabel.toUpperCase()}`;
+            document.getElementById('secondary-cta-btn').style.display = 'none';
         }
 
         function handlePrimaryCTA() {
-            const session = CivicCore.getSession();
-            if (session) {
-                window.location.href = session.role === 'lgu' ? 'admin.html' : 'app.html';
-            } else {
-                window.location.href = 'register.html?mode=signup';
+            const user = CivicCore.getSession();
+            if (!user) {
+                window.location.href = 'register.html?mode=login';
+                return;
             }
+            window.location.href = CivicCore.getHomeRouteForRole(user.role);
         }
-
-        document.querySelectorAll('.faq-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                const answer = button.nextElementSibling;
-                const icon = button.querySelector('.faq-icon');
-                const isOpen = answer.classList.contains('open');
-                document.querySelectorAll('.faq-answer').forEach(ans => ans.classList.remove('open'));
-                document.querySelectorAll('.faq-icon').forEach(icn => icn.textContent = '+');
-                if (!isOpen) {
-                    answer.classList.add('open');
-                    icon.textContent = '-';
-                }
-            });
-        });
     </script>
 </body>
 </html>

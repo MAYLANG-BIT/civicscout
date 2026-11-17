@@ -1,0 +1,9 @@
+{
+  "name": "CivicScout — Gamified Urban Reporting",
+  "short_name": "CivicScout",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "description": "Crowdsourced urban maintenance and LGU dispatch platform for Barangay Batia."
+}

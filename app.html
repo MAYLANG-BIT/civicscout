@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CivicScout | Active Mission</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -37,12 +39,12 @@
     <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none"></div>
 
     <div id="network-banner" class="hidden fixed top-0 left-0 w-full z-50 bg-amber-600 text-slate-950 text-xs font-bold py-1.5 text-center shadow-lg">
-        <i class="fa-solid fa-wifi-slash mr-1"></i> OFFLINE MODE: Reports cached locally and will auto-sync when online.
+        <i class="fa-solid fa-wifi-slash mr-1"></i> OFFLINE MODE: Reports queued locally and will auto-sync once online.
     </div>
 
     <div id="map"></div>
 
-    <!-- TOP HUD: Player Stats & Navigation -->
+    <!-- TOP HUD -->
     <div class="hud-overlay top-0 left-0 w-full p-4 flex justify-between items-start">
         <div onclick="openProfileModal('history')" class="interactive cursor-pointer bg-slate-900/90 backdrop-blur-md border border-slate-700 hover:border-blue-500 transition-all p-3 rounded-2xl shadow-lg flex items-center gap-3 w-64">
             <div id="player-avatar" class="bg-blue-600 rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl shadow-inner shrink-0">S</div>
@@ -59,11 +61,11 @@
         </div>
 
         <div class="interactive flex gap-2">
-            <button onclick="openProfileModal('leaderboard')" class="bg-slate-900/90 backdrop-blur-md border border-slate-700 hover:border-yellow-500 px-3.5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-all" title="Leaderboard & Badges">
+            <button onclick="openProfileModal('leaderboard')" class="bg-slate-900/90 backdrop-blur-md border border-slate-700 hover:border-yellow-500 px-3.5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-all">
                 <i class="fa-solid fa-trophy text-yellow-400 text-sm"></i>
                 <span class="hidden sm:inline text-xs font-bold uppercase tracking-wider">Ranks</span>
             </button>
-            <button onclick="CivicCore.logout()" class="bg-slate-900/90 backdrop-blur-md border border-slate-700 hover:border-red-500 px-3.5 py-2.5 rounded-xl shadow-lg text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-red-400 flex items-center gap-1.5 transition-all" title="Log Out">
+            <button onclick="CivicCore.logout()" class="bg-slate-900/90 backdrop-blur-md border border-slate-700 hover:border-red-500 px-3.5 py-2.5 rounded-xl shadow-lg text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-red-400 flex items-center gap-1.5 transition-all">
                 <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Logout</span>
             </button>
         </div>
@@ -72,7 +74,7 @@
     <!-- BOTTOM HUD -->
     <div id="scout-controls" class="hud-overlay bottom-0 left-0 w-full pb-8 pt-12 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent flex flex-col items-center justify-end">
         <div class="flex items-center gap-2 mb-3">
-            <p class="text-xs font-semibold text-slate-300 bg-slate-900/85 px-4 py-1.5 rounded-full border border-slate-700 backdrop-blur-sm">
+            <p id="hud-street-pill" class="text-xs font-semibold text-slate-300 bg-slate-900/85 px-4 py-1.5 rounded-full border border-slate-700 backdrop-blur-sm max-w-[260px] truncate">
                 <i class="fa-solid fa-crosshairs text-blue-400 mr-1"></i> Tap inside Brgy. Batia to pin an issue
             </p>
             <button onclick="locateScoutGPS()" class="interactive bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-blue-500 text-blue-400 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition-all" title="Use Device GPS">
@@ -98,7 +100,7 @@
                 </div>
             </div>
             <p class="text-xs text-slate-300 leading-relaxed mb-4">
-                CivicScout requests access to your <strong>GPS coordinates</strong> and <strong>device camera</strong> to attach location-tagged evidence to municipal reports. Your personal email is hidden from the public map and shared strictly with verified Barangay Batia LGU personnel.
+                CivicScout requests access to your <strong>GPS coordinates</strong> and <strong>device camera</strong> to attach location-tagged evidence to municipal reports. You can also use our built-in <strong>Privacy Blur Brush</strong> to redact faces or license plates before submitting.
             </p>
             <div class="flex gap-3">
                 <button onclick="declinePrivacy()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs">Decline</button>
@@ -131,27 +133,43 @@
         </div>
     </div>
 
-    <!-- REPORT MODAL -->
+    <!-- REPORT MODAL WITH PRIVACY BLUR CANVAS & SEVERITY -->
     <div id="report-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end justify-center hidden">
         <div class="bg-slate-900 border-t border-slate-700 w-full max-w-lg rounded-t-3xl p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <div>
                     <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Report Barangay Issue</h3>
-                    <p id="target-coords-label" class="text-[11px] text-slate-400 font-mono">Target: 14.8320, 120.9430</p>
+                    <p id="target-coords-label" class="text-[11px] text-blue-300 font-medium">Locating street...</p>
                 </div>
                 <button onclick="closeReportModal()" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             
             <form id="issue-form" onsubmit="submitIssue(event)" class="space-y-4">
+                <!-- Photo + Interactive RA 10173 Privacy Blur Canvas -->
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">1. Photo Evidence (Auto-Compressed + AI Scan)</label>
-                    <label class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl p-4 text-center cursor-pointer bg-slate-800/30 flex flex-col items-center justify-center block">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">1. Photo Evidence & Privacy Blur</label>
+                        <button type="button" id="reset-blur-btn" onclick="resetBlurCanvas()" class="hidden text-[10px] text-amber-400 hover:underline font-bold">Reset Blur</button>
+                    </div>
+                    
+                    <label id="photo-upload-box" class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl p-4 text-center cursor-pointer bg-slate-800/30 flex flex-col items-center justify-center block">
                         <input type="file" id="issue-photo" accept="image/*" capture="environment" class="hidden" onchange="processAndAnalyzeImage(event)">
-                        <div id="photo-preview-container" class="flex flex-col items-center">
-                            <i class="fa-solid fa-camera text-2xl text-slate-400 mb-1"></i>
-                            <p class="text-xs text-slate-400">Tap to snap or upload photo</p>
-                        </div>
+                        <i class="fa-solid fa-camera text-2xl text-slate-400 mb-1"></i>
+                        <p class="text-xs text-slate-400">Tap to snap or upload photo</p>
                     </label>
+
+                    <!-- Interactive Canvas Editor (Shown after photo upload) -->
+                    <div id="blur-editor-container" class="hidden bg-slate-800/60 border border-slate-700 rounded-xl p-2.5 text-center">
+                        <canvas id="evidence-canvas" class="w-full max-h-48 object-contain rounded-lg border border-blue-500/50 cursor-crosshair touch-none mx-auto"></canvas>
+                        <div class="flex justify-between items-center mt-2 text-[10px] text-slate-300">
+                            <span><i class="fa-solid fa-hand-pointer text-pink-400"></i> Drag finger/mouse over faces or plates to pixelate (RA 10173)</span>
+                            <label class="text-blue-400 font-bold cursor-pointer hover:underline">
+                                Change Photo
+                                <input type="file" accept="image/*" capture="environment" class="hidden" onchange="processAndAnalyzeImage(event)">
+                            </label>
+                        </div>
+                    </div>
+
                     <div id="ai-analysis-banner" class="hidden mt-2 bg-blue-950/60 border border-blue-500/40 rounded-xl p-2.5 flex items-center justify-between text-xs">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles text-blue-400"></i>
@@ -161,6 +179,7 @@
                     </div>
                 </div>
 
+                <!-- Category -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">2. Issue Category</label>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -187,14 +206,29 @@
                     </div>
                 </div>
 
+                <!-- Severity Priority Level -->
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">3. Description / Landmarks</label>
-                    <textarea id="issue-desc" rows="2" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="e.g. Malapit sa kanto ng St. Martha..."></textarea>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">3. Urgency / Severity Level</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="severity" value="Low" class="hidden peer">
+                            <div class="border border-slate-700 bg-slate-800/50 peer-checked:border-slate-400 peer-checked:bg-slate-700 py-2 rounded-xl text-center text-xs font-bold text-slate-300">Low</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="severity" value="Moderate" checked class="hidden peer">
+                            <div class="border border-slate-700 bg-slate-800/50 peer-checked:border-amber-500 peer-checked:bg-amber-500/20 py-2 rounded-xl text-center text-xs font-bold text-amber-300">Moderate</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="severity" value="Critical Hazard" class="hidden peer">
+                            <div class="border border-slate-700 bg-slate-800/50 peer-checked:border-red-500 peer-checked:bg-red-500/20 py-2 rounded-xl text-center text-xs font-bold text-red-400">Critical Hazard</div>
+                        </label>
+                    </div>
                 </div>
 
-                <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-2.5 text-[11px] text-slate-400 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-blue-400"></i>
-                    <span>Status starts as <strong>Reported</strong>. +50 XP unlocks upon LGU verification, plus +100 XP when resolved.</span>
+                <!-- Description -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">4. Description / Landmarks</label>
+                    <textarea id="issue-desc" rows="2" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="e.g. Malapit sa kanto ng St. Martha..."></textarea>
                 </div>
 
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
@@ -204,11 +238,10 @@
         </div>
     </div>
 
-    <!-- PLAYER PROFILE, BADGES & LEADERBOARD MODAL -->
+    <!-- PLAYER PROFILE MODAL -->
     <div id="profile-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center hidden p-4">
         <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeProfileModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
-            
             <div class="flex items-center gap-4 mb-5">
                 <div id="modal-avatar" class="bg-blue-600 rounded-full w-16 h-16 flex items-center justify-center font-bold text-2xl shadow-inner">S</div>
                 <div>
@@ -225,26 +258,20 @@
             </div>
 
             <div id="tab-content-history" class="space-y-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Submission Status History</h4>
                 <div id="profile-reports-list" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
             </div>
-
             <div id="tab-content-badges" class="hidden">
                 <div id="badges-grid" class="grid grid-cols-3 gap-3"></div>
             </div>
-
             <div id="tab-content-leaderboard" class="hidden">
                 <div class="bg-slate-800/40 border border-slate-700 rounded-2xl p-3">
-                    <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">Live Scout Rankings — Brgy. Batia</h4>
                     <div id="leaderboard-list" class="space-y-2"></div>
                 </div>
             </div>
 
             <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center">
                 <a href="index.html" class="text-xs text-slate-400 hover:text-white">Landing Page</a>
-                <button onclick="CivicCore.logout()" class="bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 px-4 py-2 rounded-xl text-xs font-bold">
-                    Log Out
-                </button>
+                <button onclick="CivicCore.logout()" class="bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 px-4 py-2 rounded-xl text-xs font-bold">Log Out</button>
             </div>
         </div>
     </div>
@@ -252,31 +279,27 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="civicscout-core.js"></script>
     <script>
-        // Route Guard: Must be logged in as Scout (or redirect appropriately)
         const currentUser = CivicCore.getSession();
-        if (!currentUser) {
-            window.location.href = 'register.html?mode=login';
-        } else if (currentUser.role === 'lgu') {
-            window.location.href = 'admin.html';
-        }
+        if (!currentUser) window.location.href = 'register.html?mode=login';
+        else if (currentUser.role === 'lgu') window.location.href = 'admin.html';
 
         let allReports = [];
         let playerXP = 0;
         let privacyConsented = localStorage.getItem(`privacy_${currentUser.email}`) === 'true';
         let selectedTargetCoords = null;
+        let resolvedStreetName = "Brgy. Batia, Bocaue";
         let activeTargetMarker = null;
-        let compressedImageBase64 = null;
+        let originalLoadedImage = null;
         let aiModerationFlagged = false;
+        let isDrawingBlur = false;
         let mapMarkersLayer = L.layerGroup();
 
-        // Populate Dynamic HUD
         document.getElementById('player-name-display').innerText = currentUser.name;
         document.getElementById('modal-player-name').innerText = currentUser.name;
         document.getElementById('modal-player-email').innerText = `${currentUser.email} • ${currentUser.barangay}`;
         document.getElementById('player-avatar').innerText = currentUser.name.charAt(0).toUpperCase();
         document.getElementById('modal-avatar').innerText = currentUser.name.charAt(0).toUpperCase();
 
-        // Map Setup
         const map = L.map('map', { center: [14.832, 120.943], zoom: 15, minZoom: 14, zoomControl: false });
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
         mapMarkersLayer.addTo(map);
@@ -319,6 +342,21 @@
             return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
         }
 
+        async function reverseGeocodeStreet(lat, lng) {
+            resolvedStreetName = `Brgy. Batia (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+            document.getElementById('hud-street-pill').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-400 mr-1"></i> Resolving street...`;
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const addr = data.address || {};
+                    const road = addr.road || addr.neighbourhood || addr.suburb || "Brgy. Batia";
+                    resolvedStreetName = `${road}, Brgy. Batia`;
+                }
+            } catch {}
+            document.getElementById('hud-street-pill').innerHTML = `<i class="fa-solid fa-location-dot text-pink-400 mr-1"></i> ${resolvedStreetName}`;
+        }
+
         map.on('click', (e) => {
             if (!isInsideBatia(e.latlng.lat, e.latlng.lng)) {
                 showToast("Target outside Brgy. Batia jurisdiction.", "amber");
@@ -336,13 +374,11 @@
                 iconSize: [22, 22], iconAnchor: [11, 11]
             });
             activeTargetMarker = L.marker([lat, lng], { icon: reticleIcon }).addTo(map);
+            reverseGeocodeStreet(lat, lng);
         }
 
         function locateScoutGPS() {
-            if (!privacyConsented) {
-                document.getElementById('privacy-modal').classList.remove('hidden');
-                return;
-            }
+            if (!privacyConsented) { document.getElementById('privacy-modal').classList.remove('hidden'); return; }
             if (!navigator.geolocation) return showToast("GPS not supported.", "amber");
             showToast("Acquiring satellite GPS lock...", "blue");
             navigator.geolocation.getCurrentPosition(
@@ -361,14 +397,9 @@
         }
 
         function initiateReportFlow() {
-            if (!privacyConsented) {
-                document.getElementById('privacy-modal').classList.remove('hidden');
-                return;
-            }
-            if (!selectedTargetCoords) {
-                showToast("Tap inside Brgy. Batia on the map to drop a target pin first!", "amber");
-                return;
-            }
+            if (!privacyConsented) { document.getElementById('privacy-modal').classList.remove('hidden'); return; }
+            if (!selectedTargetCoords) { showToast("Tap inside Brgy. Batia on the map to drop a target pin first!", "amber"); return; }
+
             const nearby = allReports.find(r =>
                 !['Resolved', 'Rejected/Invalid', 'Duplicate'].includes(r.status) &&
                 getDistanceMeters(selectedTargetCoords.lat, selectedTargetCoords.lng, r.lat, r.lng) <= 50
@@ -380,7 +411,7 @@
                         <span class="text-[10px] text-amber-400 font-bold">${nearby.status}</span>
                     </div>
                     <p class="text-white font-semibold">${nearby.description}</p>
-                    <p class="text-[10px] text-slate-400 mt-1">Reported by ${nearby.scoutName} • ${nearby.confirmations || 1} Confirmation(s)</p>
+                    <p class="text-[10px] text-slate-400 mt-1">${nearby.streetAddress || 'Brgy. Batia'} • ${nearby.confirmations || 1} Confirmation(s)</p>
                 `;
                 document.getElementById('confirm-duplicate-btn').onclick = () => confirmExistingReport(nearby.id);
                 document.getElementById('duplicate-modal').classList.remove('hidden');
@@ -393,17 +424,10 @@
             privacyConsented = true;
             localStorage.setItem(`privacy_${currentUser.email}`, 'true');
             document.getElementById('privacy-modal').classList.add('hidden');
-            showToast("Privacy consent recorded.", "emerald");
             if (selectedTargetCoords) initiateReportFlow();
         }
-        function declinePrivacy() {
-            document.getElementById('privacy-modal').classList.add('hidden');
-            showToast("GPS & Camera consent required to submit reports.", "amber");
-        }
-        function bypassDuplicateAndReport() {
-            document.getElementById('duplicate-modal').classList.add('hidden');
-            openReportModal();
-        }
+        function declinePrivacy() { document.getElementById('privacy-modal').classList.add('hidden'); }
+        function bypassDuplicateAndReport() { document.getElementById('duplicate-modal').classList.add('hidden'); openReportModal(); }
 
         async function confirmExistingReport(reportId) {
             const report = allReports.find(r => r.id === reportId);
@@ -422,10 +446,51 @@
         }
 
         function openReportModal() {
-            document.getElementById('target-coords-label').innerText = `Target: ${selectedTargetCoords.lat.toFixed(5)}, ${selectedTargetCoords.lng.toFixed(5)} (Brgy. Batia)`;
+            document.getElementById('target-coords-label').innerText = `${resolvedStreetName} [${selectedTargetCoords.lat.toFixed(5)}, ${selectedTargetCoords.lng.toFixed(5)}]`;
             document.getElementById('report-modal').classList.remove('hidden');
         }
         function closeReportModal() { document.getElementById('report-modal').classList.add('hidden'); }
+
+        // Interactive RA 10173 Privacy Pixelation Brush on Canvas
+        const canvas = document.getElementById('evidence-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function pixelateBrush(clientX, clientY) {
+            if (!originalLoadedImage) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const cx = (clientX - rect.left) * scaleX;
+            const cy = (clientY - rect.top) * scaleY;
+            const radius = 22;
+            const blockSize = 8;
+
+            const startX = Math.max(0, Math.floor(cx - radius));
+            const startY = Math.max(0, Math.floor(cy - radius));
+            const endX = Math.min(canvas.width, Math.ceil(cx + radius));
+            const endY = Math.min(canvas.height, Math.ceil(cy + radius));
+
+            for (let y = startY; y < endY; y += blockSize) {
+                for (let x = startX; x < endX; x += blockSize) {
+                    const pixel = ctx.getImageData(x, y, 1, 1).data;
+                    ctx.fillStyle = `rgb(${pixel[0]},${pixel[1]},${pixel[2]})`;
+                    ctx.fillRect(x, y, blockSize, blockSize);
+                }
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => { isDrawingBlur = true; pixelateBrush(e.clientX, e.clientY); });
+        canvas.addEventListener('mousemove', (e) => { if (isDrawingBlur) pixelateBrush(e.clientX, e.clientY); });
+        window.addEventListener('mouseup', () => { isDrawingBlur = false; });
+
+        canvas.addEventListener('touchstart', (e) => { isDrawingBlur = true; pixelateBrush(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+        canvas.addEventListener('touchmove', (e) => { if (isDrawingBlur) pixelateBrush(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+        window.addEventListener('touchend', () => { isDrawingBlur = false; });
+
+        function resetBlurCanvas() {
+            if (!originalLoadedImage) return;
+            ctx.drawImage(originalLoadedImage, 0, 0, canvas.width, canvas.height);
+        }
 
         function processAndAnalyzeImage(event) {
             const file = event.target.files[0];
@@ -434,18 +499,15 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    const canvas = document.createElement('canvas');
+                    originalLoadedImage = img;
                     const scale = Math.min(1, 640 / img.width);
                     canvas.width = img.width * scale;
                     canvas.height = img.height * scale;
-                    const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
 
-                    document.getElementById('photo-preview-container').innerHTML = `
-                        <img src="${compressedImageBase64}" class="w-full h-28 object-cover rounded-lg mb-1 border border-blue-500">
-                        <p class="text-[10px] text-emerald-400 font-bold"><i class="fa-solid fa-compress"></i> Compressed & Ready</p>
-                    `;
+                    document.getElementById('photo-upload-box').classList.add('hidden');
+                    document.getElementById('blur-editor-container').classList.remove('hidden');
+                    document.getElementById('reset-blur-btn').classList.remove('hidden');
 
                     const banner = document.getElementById('ai-analysis-banner');
                     const sugText = document.getElementById('ai-suggestion-text');
@@ -482,7 +544,9 @@
         async function submitIssue(e) {
             e.preventDefault();
             const category = document.querySelector('input[name="category"]:checked').value;
+            const severity = document.querySelector('input[name="severity"]:checked').value;
             const desc = document.getElementById('issue-desc').value.trim();
+            const finalImage = originalLoadedImage ? canvas.toDataURL('image/jpeg', 0.72) : null;
 
             const report = {
                 id: Date.now(),
@@ -490,8 +554,11 @@
                 scoutName: currentUser.name,
                 barangay: currentUser.barangay || "Brgy. Batia",
                 category,
+                severity,
+                streetAddress: resolvedStreetName,
                 description: desc,
-                image: compressedImageBase64,
+                image: finalImage,
+                resolvedImage: null,
                 lat: selectedTargetCoords.lat,
                 lng: selectedTargetCoords.lng,
                 status: 'Reported',
@@ -499,22 +566,32 @@
                 aiFlagged: aiModerationFlagged,
                 confirmations: 1,
                 confirmedBy: [],
+                createdEpoch: Math.floor(Date.now() / 1000),
                 timestamp: new Date().toLocaleString()
             };
 
-            allReports = await CivicCore.saveNewReport(report);
-            renderAllMapMarkers();
-            showToast("Report routed to Brgy. Batia LGU! Status: Reported.", "blue");
+            try {
+                const res = await CivicCore.saveNewReport(report);
+                allReports = res.reports;
+                renderAllMapMarkers();
+                if (res.offlineQueued) {
+                    showToast("Saved to Offline Outbox! Will auto-sync when online.", "amber");
+                } else {
+                    showToast("Report routed to Brgy. Batia LGU! Status: Reported.", "blue");
+                }
+            } catch (err) {
+                showToast(err.message, "amber");
+                return;
+            }
 
             if (activeTargetMarker) { map.removeLayer(activeTargetMarker); activeTargetMarker = null; }
             closeReportModal();
             document.getElementById('issue-form').reset();
             document.getElementById('ai-analysis-banner').classList.add('hidden');
-            document.getElementById('photo-preview-container').innerHTML = `
-                <i class="fa-solid fa-camera text-2xl text-slate-400 mb-1"></i>
-                <p class="text-xs text-slate-400">Tap to snap or upload photo</p>
-            `;
-            compressedImageBase64 = null;
+            document.getElementById('blur-editor-container').classList.add('hidden');
+            document.getElementById('reset-blur-btn').classList.add('hidden');
+            document.getElementById('photo-upload-box').classList.remove('hidden');
+            originalLoadedImage = null;
             selectedTargetCoords = null;
         }
 
@@ -531,14 +608,20 @@
                     iconSize: [30, 30], iconAnchor: [15, 15]
                 });
                 const canConfirm = r.scoutEmail !== currentUser.email && !(r.confirmedBy || []).includes(currentUser.email) && r.status !== 'Resolved';
+                const photosHTML = (r.image || r.resolvedImage) ? `
+                    <div class="grid ${r.image && r.resolvedImage ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5 mb-1.5">
+                        ${r.image ? `<div><span class="text-[9px] font-bold text-slate-500 block">BEFORE</span><img src="${r.image}" class="w-full h-20 object-cover rounded"></div>` : ''}
+                        ${r.resolvedImage ? `<div><span class="text-[9px] font-bold text-emerald-600 block">AFTER (LGU)</span><img src="${r.resolvedImage}" class="w-full h-20 object-cover rounded border border-emerald-500"></div>` : ''}
+                    </div>` : '';
                 const popupHTML = `
-                    <div class="text-slate-900 min-w-[190px] font-sans">
+                    <div class="text-slate-900 min-w-[215px] font-sans">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-slate-200">${r.category}</span>
-                            <span class="text-[10px] font-bold text-blue-700">${r.status}</span>
+                            <span class="text-[10px] font-bold ${r.status === 'Resolved' ? 'text-emerald-600' : 'text-blue-700'}">${r.status}</span>
                         </div>
+                        <p class="text-[10px] text-slate-500 font-semibold mb-0.5">${r.streetAddress || 'Brgy. Batia'}</p>
                         <p class="text-xs font-bold mb-1">${r.description}</p>
-                        ${r.image ? `<img src="${r.image}" class="w-full h-20 object-cover rounded mb-1.5">` : ''}
+                        ${photosHTML}
                         <p class="text-[10px] text-slate-600 mb-2">Scout: <strong>${r.scoutName}</strong> • ${r.confirmations || 1} Confirm(s)</p>
                         ${canConfirm ? `<button onclick="confirmExistingReport(${r.id})" class="w-full bg-emerald-600 text-white text-[11px] font-bold py-1.5 rounded">Confirm Accuracy (+15 XP)</button>` : ''}
                     </div>
@@ -556,9 +639,7 @@
                     xp += 50;
                     if (r.status === 'Resolved') xp += 100;
                 }
-                if ((r.confirmedBy || []).includes(email) && eligible.includes(r.status)) {
-                    xp += 15;
-                }
+                if ((r.confirmedBy || []).includes(email) && eligible.includes(r.status)) xp += 15;
             });
             return { xp, verified };
         }
@@ -613,7 +694,7 @@
                         ${r.image ? `<img src="${r.image}" class="w-10 h-10 object-cover rounded-lg shrink-0">` : `<div class="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center shrink-0"><i class="fa-solid fa-image"></i></div>`}
                         <div class="min-w-0">
                             <span class="font-bold text-white">${r.category}</span>
-                            <p class="text-slate-400 text-[10px] truncate">${r.description}</p>
+                            <p class="text-slate-400 text-[10px] truncate">${r.streetAddress || r.description}</p>
                             ${r.dispatchedUnit ? `<p class="text-[9px] text-blue-400 font-semibold">${r.dispatchedUnit}</p>` : ''}
                         </div>
                     </div>
@@ -641,7 +722,6 @@
         }
 
         function renderLeaderboard() {
-            // Build leaderboard dynamically from all registered Scout accounts + active reports
             const scoutMap = new Map();
             scoutMap.set(currentUser.email, { name: currentUser.name, xp: playerXP, isUser: true });
             allReports.forEach(r => {
@@ -675,31 +755,30 @@
             setTimeout(() => el.remove(), 3500);
         }
 
-        // Cross-tab & periodic sync
-        window.addEventListener('storage', async (e) => {
-            if (e.key === CivicCore.REPORTS_KEY) {
-                const prevXP = playerXP;
+        window.addEventListener('offline', () => document.getElementById('network-banner').classList.remove('hidden'));
+        window.addEventListener('online', async () => {
+            document.getElementById('network-banner').classList.add('hidden');
+            const synced = await CivicCore.flushOfflineOutbox();
+            if (synced > 0) {
+                showToast(`Back online! Synced ${synced} queued report(s) to LGU.`, "emerald");
                 allReports = await CivicCore.fetchReports();
                 renderAllMapMarkers();
-                recalculatePlayerProgress();
-                if (playerXP > prevXP) showToast(`LGU Update! You earned +${playerXP - prevXP} XP!`, "emerald");
             }
         });
 
-        window.addEventListener('offline', () => document.getElementById('network-banner').classList.remove('hidden'));
-        window.addEventListener('online', () => document.getElementById('network-banner').classList.add('hidden'));
-
-        (async function boot() {
+        CivicCore.connectRealtime(async () => {
+            const prevXP = playerXP;
             allReports = await CivicCore.fetchReports();
             renderAllMapMarkers();
             recalculatePlayerProgress();
-            setInterval(async () => {
-                const prevXP = playerXP;
-                allReports = await CivicCore.fetchReports();
-                renderAllMapMarkers();
-                recalculatePlayerProgress();
-                if (playerXP > prevXP) showToast(`LGU Update! You earned +${playerXP - prevXP} XP!`, "emerald");
-            }, 4000);
+            if (playerXP > prevXP) showToast(`Instant LGU Update! You earned +${playerXP - prevXP} XP!`, "emerald");
+        });
+
+        (async function boot() {
+            await CivicCore.flushOfflineOutbox();
+            allReports = await CivicCore.fetchReports();
+            renderAllMapMarkers();
+            recalculatePlayerProgress();
         })();
     </script>
 </body>
